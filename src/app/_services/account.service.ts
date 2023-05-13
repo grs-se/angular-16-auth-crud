@@ -16,10 +16,9 @@ export class AccountService {
     this.userSubject = new BehaviorSubject(
       JSON.parse(localStorage.getItem('user')!)
     );
-    // The public user property is then set to this.userSubject.asObservable(); which allows other components to subscribe to the user Observable but doesn't allow them to publish to the userSubject, this is so logging in and out of the app can only be done via the authentication service.
     this.user = this.userSubject.asObservable();
   }
-  // The userValue getter allows other components an easy way to get the value of the currently logged in user without having to subscribe to the user Observable.
+
   public get userValue() {
     return this.userSubject.value;
   }
@@ -32,6 +31,7 @@ export class AccountService {
       })
       .pipe(
         map((user) => {
+          // store user details and jwt token in local storage to keep user logged in between page refreshes
           localStorage.setItem('user', JSON.stringify(user));
           this.userSubject.next(user);
           return user;
@@ -40,8 +40,13 @@ export class AccountService {
   }
 
   logout() {
+    // remove user from local storage and set current user to null
     localStorage.removeItem('user');
     this.userSubject.next(null);
     this.router.navigate(['/account/login']);
+  }
+
+  register(user: User) {
+    return this.http.post(`${environment.apiUrl}/users/register`, user);
   }
 }
